@@ -1,5 +1,6 @@
 ﻿
 
+using Castle.Components.DictionaryAdapter.Xml;
 using Moq;
 
 namespace CursoOnline.DominioTest.Cursos
@@ -17,13 +18,25 @@ namespace CursoOnline.DominioTest.Cursos
             {
                 Nome = faker.Random.Words(),
                 CargaHoraria = faker.Random.Double(50, 400),
-                PublicoAlvo = PublicoAlvo.Estudante,
+                PublicoAlvo = "Estudante",
                 Valor = faker.Random.Double(500, 4000),
                 Descricao = faker.Lorem.Paragraph()
             };
 
             _cursoRepositorioMock = new Mock<ICursoRepositorio>();
             _armazenadorDeCurso = new ArmazenadorDeCurso(_cursoRepositorioMock.Object);
+        }
+
+        [Fact]
+        public void NaoDeveInformarPublicoAlvoInvalido()
+        {
+            
+            _cursoDto.PublicoAlvo = "Médico";
+
+            Assert.Throws<ArgumentException>(() => 
+                _armazenadorDeCurso.Armazenar(_cursoDto))
+                .WithMessage("Público Alvo Inválido"); ;
+
         }
 
         [Fact]
@@ -35,8 +48,7 @@ namespace CursoOnline.DominioTest.Cursos
                 It.Is<Curso>(
                     c =>
                     c.Nome == _cursoDto.Nome &&
-                    c.CargaHoraria == _cursoDto.CargaHoraria &&
-                    c.PublicoAlvo == _cursoDto.PublicoAlvo &&
+                    c.CargaHoraria == _cursoDto.CargaHoraria &&                    
                     c.Valor == _cursoDto.Valor &&
                     c.Descricao == _cursoDto.Descricao
                 )
@@ -62,7 +74,12 @@ namespace CursoOnline.DominioTest.Cursos
 
         public void Armazenar(CursoDto cursoDto)
         {
-            var curso = new Curso(cursoDto.Nome, cursoDto.CargaHoraria, cursoDto.PublicoAlvo, cursoDto.Valor, cursoDto.Descricao);
+            Enum.TryParse(typeof(PublicoAlvo), cursoDto.PublicoAlvo, out var publicoAlvo);
+
+            if (publicoAlvo is null)
+                throw new ArgumentException("Público Alvo inválido");
+
+            var curso = new Curso(cursoDto.Nome, cursoDto.CargaHoraria, (PublicoAlvo)publicoAlvo, cursoDto.Valor, cursoDto.Descricao);
             _cursoRepositorio.Adicionar(curso);
         }
     }

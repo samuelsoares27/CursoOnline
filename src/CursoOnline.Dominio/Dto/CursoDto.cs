@@ -6,7 +6,7 @@ namespace CursoOnline.Dominio.Dto
     {
         public string Nome { get; set; } = string.Empty;
         public double CargaHoraria { get; set; }
-        public PublicoAlvo PublicoAlvo { get; set; }
+        public string PublicoAlvo { get; set; }
         public double Valor { get; set; }
         public string Descricao { get; set; } = string.Empty;
     }
